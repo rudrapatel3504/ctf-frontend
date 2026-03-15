@@ -728,16 +728,6 @@ function setLoading(prefix, on) {
 }
 
 
-  // ── 4. Dir Brute-Force ──
-  appendLine('fr-output', `[~] [4/4] Running Directory Brute-Force...`, 'dim');
-  const db = await fetchWithTimeout('/api/dirbrute', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({url: urlTarget})
-  });
-  if (db.error) {
-    appendLine('fr-output', `[-] Directories : ERROR — ${db.error}`, 'error');
-  } else {
-
 
 
 
