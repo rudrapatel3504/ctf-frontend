@@ -424,39 +424,7 @@
   html::-webkit-scrollbar-track { background: var(--bg); }
   html::-webkit-scrollbar-thumb { background: var(--green-dim); }
 
-  /* ── API Config Banner ── */
-  .api-config-bar {
-    background: rgba(0,255,65,0.04);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--cyan);
-    padding: 10px 16px;
-    margin-bottom: 24px;
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .api-config-bar label {
-    color: var(--cyan);
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    margin-bottom: 0;
-    white-space: nowrap;
-  }
-  .api-config-bar input {
-    flex: 1;
-    min-width: 200px;
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
-  .api-save-btn {
-    padding: 6px 16px;
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    margin-top: 0;
-    width: auto;
-  }
+
 </style>
 </head>
 <body>
@@ -481,13 +449,7 @@
 
   <div class="tagline">// Reconnaissance Suite v2.0 //</div>
 
-  <!-- API Base URL Configuration -->
-  <div class="api-config-bar">
-    <label>⚙ API BASE URL</label>
-    <input type="text" id="api-base-input" placeholder="https://your-backend.example.com" />
-    <button class="btn api-save-btn" onclick="saveApiBase()"><span>SAVE</span></button>
-    <span id="api-status" style="font-size:0.7rem; color:var(--green-dim);"></span>
-  </div>
+
 
   <div class="tabs">
     <div class="dropdown">
@@ -733,35 +695,7 @@
 </div><!-- /container -->
 
 <script>
-// ── API Base URL ──────────────────────────────────────────────────────────────
-// Change this default to your deployed Flask backend URL.
-// Users can also override it using the input box above.
-const DEFAULT_API_BASE = '';  // e.g. 'https://ctfrecon-api.onrender.com'
 
-function getApiBase() {
-  return (localStorage.getItem('ctf_api_base') || DEFAULT_API_BASE).replace(/\/$/, '');
-}
-
-function saveApiBase() {
-  const val = document.getElementById('api-base-input').value.trim().replace(/\/$/, '');
-  localStorage.setItem('ctf_api_base', val);
-  document.getElementById('api-status').textContent = val ? `✓ Saved: ${val}` : '✓ Using relative (same-origin)';
-  setTimeout(() => document.getElementById('api-status').textContent = '', 3000);
-}
-
-function apiUrl(path) {
-  const base = getApiBase();
-  return base ? `${base}${path}` : path;
-}
-
-// Load saved base on startup
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('ctf_api_base') || '';
-  document.getElementById('api-base-input').value = saved;
-  if (!saved && DEFAULT_API_BASE) {
-    document.getElementById('api-base-input').value = DEFAULT_API_BASE;
-  }
-});
 
 // ── Clock ─────────────────────────────────────────────────────────────────────
 function updateClock() {
@@ -832,22 +766,22 @@ async function runFullRecon() {
   lastFullReport = { target: cleanTarget };
   lastFullTarget = cleanTarget;
 
-  const psPromise = fetch(apiUrl('/api/portscan'), {
+  const psPromise = fetch('/api/portscan', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({target: cleanTarget, start: 1, end: 1024})
   }).then(r => r.json()).catch(e => ({error: e.message}));
 
-  const sdPromise = fetch(apiUrl('/api/subdomain'), {
+  const sdPromise = fetch('/api/subdomain', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({domain: cleanTarget})
   }).then(r => r.json()).catch(e => ({error: e.message}));
 
-  const whPromise = fetch(apiUrl('/api/whois'), {
+  const whPromise = fetch('/api/whois', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({target: cleanTarget})
   }).then(r => r.json()).catch(e => ({error: e.message}));
 
-  const dbPromise = fetch(apiUrl('/api/dirbrute'), {
+  const dbPromise = fetch('/api/dirbrute', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({url: urlTarget})
   }).then(r => r.json()).catch(e => ({error: e.message}));
@@ -903,7 +837,7 @@ async function downloadFullReport() {
   btn.disabled = true;
 
   try {
-    const response = await fetch(apiUrl('/api/fullrecon/pdf'), {
+    const response = await fetch('/api/fullrecon/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lastFullReport)
@@ -945,7 +879,7 @@ async function runPortScan() {
   appendLine('ps-output', ``, '');
 
   try {
-    const res  = await fetch(apiUrl('/api/portscan'), {
+    const res  = await fetch('/api/portscan', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({target, start, end})
     });
@@ -994,7 +928,7 @@ async function runSubdomain() {
     formData.append('domain', domain);
     if (wlFile) formData.append('wordlist', wlFile);
 
-    const res  = await fetch(apiUrl('/api/subdomain'), { method:'POST', body: formData });
+    const res  = await fetch('/api/subdomain', { method:'POST', body: formData });
     const data = await res.json();
 
     if (data.error) { appendLine('sd-output', `[-] ERROR: ${data.error}`, 'error'); return; }
@@ -1031,7 +965,7 @@ async function runWhois() {
   appendLine('wh-output', ``, '');
 
   try {
-    const res  = await fetch(apiUrl('/api/whois'), {
+    const res  = await fetch('/api/whois', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({target})
     });
@@ -1086,7 +1020,7 @@ async function runDirBrute() {
     formData.append('url', url);
     if (wlFile) formData.append('wordlist', wlFile);
 
-    const res  = await fetch(apiUrl('/api/dirbrute'), { method:'POST', body: formData });
+    const res  = await fetch('/api/dirbrute', { method:'POST', body: formData });
     const data = await res.json();
 
     if (data.error) { appendLine('db-output', `[-] ERROR: ${data.error}`, 'error'); return; }
@@ -1172,7 +1106,7 @@ async function runPdfUnlock() {
     formData.append('file', file);
     if (wlFile) formData.append('wordlist', wlFile);
 
-    const res = await fetch(apiUrl('/api/pdfunlock'), { method: 'POST', body: formData });
+    const res = await fetch('/api/pdfunlock', { method: 'POST', body: formData });
 
     if (!res.ok) {
       let errMsg = `Server error (HTTP ${res.status})`;
@@ -1240,7 +1174,7 @@ async function runWordlistGenerator() {
       include_brute: brute
     };
 
-    const res = await fetch(apiUrl('/api/wordlist'), {
+    const res = await fetch('/api/wordlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
